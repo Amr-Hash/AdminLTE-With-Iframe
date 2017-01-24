@@ -5,7 +5,9 @@ Introduction(简介)
 
 (基于AdminLTE框架,并且集成了iframe的tab页面,是一款适合中国国情的后台系统)
 
-**Preview on [https://weituotian.github.io/AdminLTE-With-Iframe/pages/index_iframe.html](https://weituotian.github.io/AdminLTE-With-Iframe/pages/index_iframe.html)**
+**Preview on github: [https://weituotian.github.io/AdminLTE-With-Iframe/pages/index_iframe.html](https://weituotian.github.io/AdminLTE-With-Iframe/pages/index_iframe.html)**
+
+**Preview on oschina: [http://weituotian.oschina.io/adminlte-with-iframe/pages/index_iframe.html](http://weituotian.oschina.io/adminlte-with-iframe/pages/index_iframe.html)**
 
 
 ![preview image1](preview/GIF.gif)
