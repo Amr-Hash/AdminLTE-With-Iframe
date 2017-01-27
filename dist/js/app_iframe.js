@@ -1658,6 +1658,15 @@ function findIframeById(pageId) {
     return findTabPanel(pageId).children("iframe");
 }
 
+function getActivePageId() {
+    var $a = $('.page-tabs-content').find('.active');
+    return getPageId($a);
+}
+
+function canRemoveTab(pageId) {
+    return findTabTitle(pageId).find('.fa-remove').size() > 0;
+}
+
 //添加tab
 var addTabs = function (options) {
     var defaultTabOptions = {
@@ -1780,10 +1789,17 @@ function closeTabByPageId(pageId) {
 
 }
 
+function closeTabOnly(pageId) {
+    var $title = findTabTitle(pageId);//有tab的标题
+    var $tabPanel = findTabPanel(pageId);//装有iframe
+    $title.remove();
+    $tabPanel.remove();
+}
+
 var closeCurrentTab = function () {
-    var currentTab = $('.page-tabs-content').find('.active').find('.fa-remove').parents('a');
-    if (currentTab) {
-        closeTab(currentTab);
+    var pageId = getActivePageId();
+    if (canRemoveTab(pageId)) {
+        closeTabByPageId(pageId);
     }
 };
 
@@ -1799,10 +1815,10 @@ function refreshTabById(pageId) {
         // animate: true
     });
 }
-var refreshTab = function (element) {
-    // var currentId = $('.page-tabs-content').find('.active').attr('data-id');
-    var pageId = getPageId(element);
-    refreshTabById(pageId)
+var refreshTab = function () {
+    //刷新当前tab
+    var pageId = getActivePageId();
+    refreshTabById(pageId);
 };
 function getTabUrlById(pageId) {
     var $iframe = findIframeById(pageId);
@@ -1928,19 +1944,34 @@ var scrollTabRight = function () {
 //关闭其他选项卡
 var closeOtherTabs = function (isAll) {
     if (isAll) {
-        $('.page-tabs-content').children("[data-id]").find('.fa-remove').parents('a').each(function () {
-            $('#' + $(this).data('id')).remove();
-            $(this).remove();
+        //关闭全部
+        $('.page-tabs-content').children("[" + pageIdField + "]").find('.fa-remove').parents('a').each(function () {
+            var $a = $(this);
+            var pageId = getPageId($a);
+            closeTabOnly(pageId);
+
+            // closeTab($a);
+            /*$('#' + $(this).data('id')).remove();
+             $(this).remove();*/
         });
-        var firstChild = $(".page-tabs-content").children(); //选中那些删不掉的第一个菜单
+        var firstChild = $(".page-tabs-content").children().eq(0); //选中那些删不掉的第一个菜单
         if (firstChild) {
-            $('#' + firstChild.data('id')).addClass('active');
-            firstChild.addClass('active');
+            //激活这个选项卡
+            activeTabByPageId(getPageId(firstChild));
+
+            /*$('#' + firstChild.data('id')).addClass('active');
+             firstChild.addClass('active');*/
         }
     } else {
-        $('.page-tabs-content').children("[data-id]").find('.fa-remove').parents('a').not(".active").each(function () {
-            $('#' + $(this).data('id')).remove();
-            $(this).remove();
+        //除此之外全部删除
+        $('.page-tabs-content').children("[" + pageIdField + "]").find('.fa-remove').parents('a').not(".active").each(function () {
+            var $a = $(this);
+            var pageId = getPageId($a);
+            closeTabOnly(pageId);
+
+            // closeTab($a);
+            /*$('#' + $(this).data('id')).remove();
+             $(this).remove();*/
         });
 
     }
