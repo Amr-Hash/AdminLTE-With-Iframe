@@ -3,7 +3,7 @@ Introduction(简介)
 
 **AdminLTE with iframe** -- Based on **AdminLTE** framework. It integrated with iframes with is popular in china admin systems.
 
-(基于AdminLTE框架,并且集成了iframe的tab页面,是一款适合中国国情的后台系统)
+(基于AdminLTE框架,并且集成了iframe的tab页面,是一款适合中国国情的后台主题UI框架)
 
 **Preview on github: [https://weituotian.github.io/AdminLTE-With-Iframe/pages/index_iframe.html](https://weituotian.github.io/AdminLTE-With-Iframe/pages/index_iframe.html)**
 
