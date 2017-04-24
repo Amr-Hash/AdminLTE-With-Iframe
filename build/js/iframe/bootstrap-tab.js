@@ -369,9 +369,61 @@ function activeTabByPageId(pageId) {
 }
 
 $(function () {
-    //点击标题的时候就激活tab
-    $(".menuTabs").on("click", ".menu_tab", function () {
+    var $tabs = $(".menuTabs");
+    //点击选项卡的时候就激活tab
+    $tabs.on("click", ".menu_tab", function () {
         var pageId = getPageId(this);
         activeTabByPageId(pageId);
     });
+
+    //双击选项卡刷新页面
+    $tabs.on("dblclick", ".menu_tab", function () {
+        // console.log("dbclick");
+        var pageId = getPageId(this);
+        refreshTabById(pageId);
+    });
+
+    //选项卡右键菜单
+    function findTabElement(target) {
+        var $ele = $(target);
+        if (!$ele.is("a")) {
+            $ele = $ele.parents("a.menu_tab");
+        }
+        return $ele;
+    }
+
+    context.init({
+        preventDoubleContext: false,//不禁用原始右键菜单
+        compress: true//元素更少的padding
+    });
+    context.attach('.page-tabs-content', [
+//            {header: 'Options'},
+        {
+            text: '刷新',
+            action: function (e, $selector, rightClickEvent) {
+                //e是点击菜单的事件
+                //$selector就是＄（".page-tabs-content")
+                //rightClickEvent就是右键打开菜单的事件
+
+                var pageId = getPageId(findTabElement(rightClickEvent.target));
+                refreshTabById(pageId);
+
+            }
+        },
+        {
+            text: "在新窗口打开",
+            action: function (e, $selector, rightClickEvent) {
+
+                var pageId = getPageId(findTabElement(rightClickEvent.target));
+                var url = getTabUrlById(pageId);
+                window.open(url);
+
+            }
+        }
+//            {text: 'Open in new Window', href: '#'},
+//            {divider: true},
+//            {text: 'Copy', href: '#'},
+//            {text: 'Dafuq!?', href: '#'}
+    ]);
+
 });

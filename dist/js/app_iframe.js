@@ -1164,6 +1164,392 @@ var App = function () {
 jQuery(document).ready(function () {
     App.init(); // init metronic core componets
 });
+/*
+ * Context.js
+ * Copyright Jacob Kelley
+ * MIT License
+ *
+ * Modified by Joshua Christman
+ */
+
+context = (function () {
+
+    var options = {
+        fadeSpeed: 100,
+        filter: function ($obj) {
+            // Modify $obj, Do not return
+        },
+        above: 'auto',
+        left: 'auto',
+        preventDoubleContext: true,
+        compress: false
+    };
+
+    function initialize(opts) {
+
+        options = $.extend({}, options, opts);
+
+        $(document).on('click', function () {
+            $('.dropdown-context').fadeOut(options.fadeSpeed, function () {
+                $('.dropdown-context').css({display: ''}).find('.drop-left').removeClass('drop-left');
+            });
+        });
+        if (options.preventDoubleContext) {
+            $(document).on('contextmenu', '.dropdown-context', function (e) {
+                e.preventDefault();
+            });
+        }
+        $(document).on('mouseenter', '.dropdown-submenu', function () {
+            var $sub = $(this).find('.dropdown-context-sub:first'),
+                subWidth = $sub.width(),
+                subLeft = $sub.offset().left,
+                collision = (subWidth + subLeft) > window.innerWidth;
+            if (collision) {
+                $sub.addClass('drop-left');
+            }
+        });
+
+    }
+
+    function updateOptions(opts) {
+        options = $.extend({}, options, opts);
+    }
+
+    function buildMenu(data, id, subMenu) {
+        var subClass = (subMenu) ? ' dropdown-context-sub' : '',
+            compressed = options.compress ? ' compressed-context' : '',
+            $menu = $('<ul class="dropdown-menu dropdown-context' + subClass + compressed + '" id="dropdown-' + id + '"></ul>');
+
+        return buildMenuItems($menu, data, id, subMenu);
+    }
+
+    function buildMenuItems($menu, data, id, subMenu, addDynamicTag) {
+        var linkTarget = '';
+        for (var i = 0; i < data.length; i++) {
+            if (typeof data[i].divider !== 'undefined') {
+                var divider = '<li class="divider';
+                divider += (addDynamicTag) ? ' dynamic-menu-item' : '';
+                divider += '"></li>';
+                $menu.append(divider);
+            } else if (typeof data[i].header !== 'undefined') {
+                var header = '<li class="nav-header';
+                header += (addDynamicTag) ? ' dynamic-menu-item' : '';
+                header += '">' + data[i].header + '</li>';
+                $menu.append(header);
+            } else if (typeof data[i].menu_item_src !== 'undefined') {
+                var funcName;
+                if (typeof data[i].menu_item_src === 'function') {
+                    if (data[i].menu_item_src.name === "") { // The function is declared like "foo = function() {}"
+                        for (var globalVar in window) {
+                            if (data[i].menu_item_src == window[globalVar]) {
+                                funcName = globalVar;
+                                break;
+                            }
+                        }
+                    } else {
+                        funcName = data[i].menu_item_src.name;
+                    }
+                } else {
+                    funcName = data[i].menu_item_src;
+                }
+                $menu.append('<li class="dynamic-menu-src" data-src="' + funcName + '"></li>');
+            } else {
+                if (typeof data[i].href == 'undefined') {
+                    data[i].href = '#';
+                }
+                if (typeof data[i].target !== 'undefined') {
+                    linkTarget = ' target="' + data[i].target + '"';
+                }
+                if (typeof data[i].subMenu !== 'undefined') {
+                    var sub_menu = '<li class="dropdown-submenu';
+                    sub_menu += (addDynamicTag) ? ' dynamic-menu-item' : '';
+                    sub_menu += '"><a tabindex="-1" href="' + data[i].href + '">' + data[i].text + '</a></li>'
+                    $sub = (sub_menu);
+                } else {
+                    var element = '<li';
+                    element += (addDynamicTag) ? ' class="dynamic-menu-item"' : '';
+                    element += '><a tabindex="-1" href="' + data[i].href + '"' + linkTarget + '>';
+                    if (typeof data[i].icon !== 'undefined')
+                        element += '<span class="glyphicon ' + data[i].icon + '"></span> ';
+                    element += data[i].text + '</a></li>';
+                    $sub = $(element);
+                }
+                if (typeof data[i].action !== 'undefined') {
+                    $action = data[i].action;
+                    $sub
+                        .find('a')
+                        .addClass('context-event')
+                        .on('click', createCallback($action));
+                }
+                $menu.append($sub);
+                if (typeof data[i].subMenu != 'undefined') {
+                    var subMenuData = buildMenu(data[i].subMenu, id, true);
+                    $menu.find('li:last').append(subMenuData);
+                }
+            }
+            if (typeof options.filter == 'function') {
+                options.filter($menu.find('li:last'));
+            }
+        }
+        return $menu;
+    }
+
+    function addContext(selector, data) {
+        if (typeof data.id !== 'undefined' && typeof data.data !== 'undefined') {
+            var id = data.id;
+            $menu = $('body').find('#dropdown-' + id)[0];
+            if (typeof $menu === 'undefined') {
+                $menu = buildMenu(data.data, id);
+                $('body').append($menu);
+            }
+        } else {
+            var d = new Date(),
+                id = d.getTime(),
+                $menu = buildMenu(data, id);
+            $('body').append($menu);
+        }
+
+        //右键事件
+        $(selector).on('contextmenu', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            rightClickEvent = e;
+            currentContextSelector = $(this);
+
+            $('.dropdown-context:not(.dropdown-context-sub)').hide();
+
+            $dd = $('#dropdown-' + id);
+
+            $dd.find('.dynamic-menu-item').remove(); // Destroy any old dynamic menu items
+            $dd.find('.dynamic-menu-src').each(function (idx, element) {
+                var menuItems = window[$(element).data('src')]($(selector));
+                $parentMenu = $(element).closest('.dropdown-menu.dropdown-context');
+                $parentMenu = buildMenuItems($parentMenu, menuItems, id, undefined, true);
+            });
+
+            if (typeof options.above == 'boolean' && options.above) {
+                $dd.addClass('dropdown-context-up').css({
+                    top: e.pageY - 20 - $('#dropdown-' + id).height(),
+                    left: e.pageX - 13
+                }).fadeIn(options.fadeSpeed);
+            } else if (typeof options.above == 'string' && options.above == 'auto') {
+                $dd.removeClass('dropdown-context-up');
+                var autoH = $dd.height() + 12;
+                if ((e.pageY + autoH) > $('html').height()) {
+                    $dd.addClass('dropdown-context-up').css({
+                        top: e.pageY - 20 - autoH,
+                        left: e.pageX - 13
+                    }).fadeIn(options.fadeSpeed);
+                } else {
+                    $dd.css({
+                        top: e.pageY + 10,
+                        left: e.pageX - 13
+                    }).fadeIn(options.fadeSpeed);
+                }
+            }
+
+            if (typeof options.left == 'boolean' && options.left) {
+                $dd.addClass('dropdown-context-left').css({
+                    left: e.pageX - $dd.width()
+                }).fadeIn(options.fadeSpeed);
+            } else if (typeof options.left == 'string' && options.left == 'auto') {
+                $dd.removeClass('dropdown-context-left');
+                var autoL = $dd.width() - 12;
+                if ((e.pageX + autoL) > $('html').width()) {
+                    $dd.addClass('dropdown-context-left').css({
+                        left: e.pageX - $dd.width() + 13
+                    });
+                }
+            }
+        });
+    }
+
+    function destroyContext(selector) {
+        $(document).off('contextmenu', selector).off('click', '.context-event');
+    }
+
+    return {
+        init: initialize,
+        settings: updateOptions,
+        attach: addContext,
+        destroy: destroyContext
+    };
+})();
+
+var createCallback = function (func) {
+    return function (event) {
+        func(event, currentContextSelector,rightClickEvent)
+    };
+};
+
+var currentContextSelector = undefined;
+var rightClickEvent = undefined;
+
+$(document).ready(function(){
+
+	context.init({preventDoubleContext: false});
+
+	context.attach('body', [
+
+		{header: 'Download'},
+		{text: 'The Script', subMenu: [
+			{header: 'Requires jQuery'},
+			{text: 'context.js', href: 'http://lab.jakiestfu.com/contextjs/context.js', target:'_blank', action: function(e){
+				_gaq.push(['_trackEvent', 'ContextJS Download', this.pathname, this.innerHTML]);
+			}}
+		]},
+		{text: 'The Styles', subMenu: [
+
+			{text: 'context.bootstrap.css', href: 'http://lab.jakiestfu.com/contextjs/context.bootstrap.css', target:'_blank', action: function(e){
+				_gaq.push(['_trackEvent', 'ContextJS Bootstrap CSS Download', this.pathname, this.innerHTML]);
+			}},
+
+			{text: 'context.standalone.css', href: 'http://lab.jakiestfu.com/contextjs/context.standalone.css', target:'_blank', action: function(e){
+				_gaq.push(['_trackEvent', 'ContextJS Standalone CSS Download', this.pathname, this.innerHTML]);
+			}}
+		]},
+		{divider: true},
+		{header: 'Meta'},
+		{text: 'The Author', subMenu: [
+			{header: '@jakiestfu'},
+			{text: 'Website', href: 'http://jakiestfu.com/', target: '_blank'},
+			{text: 'Forrst', href: 'http://forrst.com/people/jakiestfu', target: '_blank'},
+			{text: 'Twitter', href: 'http://twitter.com/jakiestfu', target: '_blank'},
+			{text: 'Donate?', action: function(e){
+				e.preventDefault();
+				$('#donate').submit();
+			}}
+		]},
+		{text: 'Hmm?', subMenu: [
+			{header: 'Well, thats lovely.'},
+			{text: '2nd Level', subMenu: [
+				{header: 'You like?'},
+				{text: '3rd Level!?', subMenu: [
+					{header: 'Of course you do'},
+					{text: 'MENUCEPTION', subMenu: [
+						{header:'FUCK'},
+						{text: 'MAKE IT STOP!', subMenu: [
+							{header: 'NEVAH!'},
+							{text: 'Shieeet', subMenu: [
+								{header: 'WIN'},
+								{text: 'Dont Click Me', href: 'http://bit.ly/1dH1Zh1', target:'_blank', action: function(){
+									console.log(this);
+								}}
+							]}
+						]}
+					]}
+				]}
+			]}
+		]}
+	]);
+
+});
+
+exampleMenuItemSource = function (selector) {
+    if ($(selector).attr('id') == 'PNG_JPG') {
+        return [
+                {
+                    header: 'Example Dynamic'
+                },
+                {
+                    text: 'PNG',
+                    action: function(e, selector) { alert('PNG clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+                },
+                {
+                    text: 'JPG',
+                    action: function(e, selector) { alert('JPG clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+                },
+                {   divider: true   },
+                {
+                    icon: 'glyphicon-list-alt',
+                    text: 'Dynamic nested',
+                    subMenu : [
+                    {
+                        text: 'More dynamic',
+                        action: function(e, selector) { alert('More dynamic clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+                    },
+                    {
+                        text: 'And more...',
+                        action: function(e, selector) { alert('And more... clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+                    }
+                    ]
+                }
+            ]
+    } else {
+        return [
+                {
+                    icon: 'glyphicon-exclamation-sign',
+                    text: 'No image types supported!'
+                }
+            ]
+    }
+}
+
+test_menu = {
+    id: 'TEST-MENU',
+    data: [
+        {
+            header: 'Example'
+        },
+        {
+            icon: 'glyphicon-plus',
+            text: 'Create',
+            action: function(e, selector) { alert('Create clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+        },
+        {
+            icon: 'glyphicon-edit',
+            text: 'Edit',
+            action: function(e, selector) { alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+        },
+        {
+            icon: 'glyphicon-list-alt',
+            text: 'View Data As:',
+            subMenu : [
+            {
+                text: 'Text',
+                action: function(e, selector) { alert('Text clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+            },
+            {
+                text: 'Image',
+                subMenu: [
+                    {
+                        menu_item_src : exampleMenuItemSource
+                    }
+                ]
+            }
+            ]
+        },
+        {
+            divider: true
+        },
+        {
+            header: 'Another Example'
+        },
+        {
+            icon: 'glyphicon-trash',
+            text: 'Delete',
+            action: function(e, selector) { alert('Delete clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+        }
+    ]
+};
+
+test_menu2 = [
+    {
+        header: 'Example'
+    },
+    {
+        icon: 'glyphicon-plus',
+        text: 'Create',
+        action: function(e, selector) { alert('Create clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+    },
+    {
+        icon: 'glyphicon-edit',
+        text: 'Edit',
+        action: function(e, selector) { alert('Edit clicked on ' + selector.prop("tagName") + ":" + selector.attr("id")); }
+    }
+];
+
 /*! Copyright (c) 2011 Piotr Rochala (http://rocha.la)
  * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
  * and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.
@@ -2033,11 +2419,63 @@ function activeTabByPageId(pageId) {
 }
 
 $(function () {
-    //点击标题的时候就激活tab
-    $(".menuTabs").on("click", ".menu_tab", function () {
+    var $tabs = $(".menuTabs");
+    //点击选项卡的时候就激活tab
+    $tabs.on("click", ".menu_tab", function () {
         var pageId = getPageId(this);
         activeTabByPageId(pageId);
     });
+
+    //双击选项卡刷新页面
+    $tabs.on("dblclick", ".menu_tab", function () {
+        // console.log("dbclick");
+        var pageId = getPageId(this);
+        refreshTabById(pageId);
+    });
+
+    //选项卡右键菜单
+    function findTabElement(target) {
+        var $ele = $(target);
+        if (!$ele.is("a")) {
+            $ele = $ele.parents("a.menu_tab");
+        }
+        return $ele;
+    }
+
+    context.init({
+        preventDoubleContext: false,//不禁用原始右键菜单
+        compress: true//元素更少的padding
+    });
+    context.attach('.page-tabs-content', [
+//            {header: 'Options'},
+        {
+            text: '刷新',
+            action: function (e, $selector, rightClickEvent) {
+                //e是点击菜单的事件
+                //$selector就是＄（".page-tabs-content")
+                //rightClickEvent就是右键打开菜单的事件
+
+                var pageId = getPageId(findTabElement(rightClickEvent.target));
+                refreshTabById(pageId);
+
+            }
+        },
+        {
+            text: "在新窗口打开",
+            action: function (e, $selector, rightClickEvent) {
+
+                var pageId = getPageId(findTabElement(rightClickEvent.target));
+                var url = getTabUrlById(pageId);
+                window.open(url);
+
+            }
+        }
+//            {text: 'Open in new Window', href: '#'},
+//            {divider: true},
+//            {text: 'Copy', href: '#'},
+//            {text: 'Dafuq!?', href: '#'}
+    ]);
+
 });
 /*!
  * jQuery blockUI plugin

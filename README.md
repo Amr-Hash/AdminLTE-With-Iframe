@@ -37,7 +37,21 @@ Documentation(文档)
 -----------------
 may be you should **customize** the system by reading the codes!
 
+[AdminLTE官方文档](http://weituotian.oschina.io/adminlte-with-iframe/documentation/index.html)
 (请阅读源码进行修改)
+
+### iframe框架
+
+介绍一些集成了iframe后新增的功能，和修改方法。
+请确认执行完上面文档的安装部分。
+可随时开启issue.
+
+#### 选项卡右键菜单，双击刷新
+
+![](preview/contextmenu.jpg)
+
+* 修改右键菜单的文字，请参阅 [bootstrap-tab.js](build/js/iframe/bootstrap-tab.js) ，内有`context.attach`初始化json菜单，并且可以参考其获取特定tab当前url的代码
+* 刷新选项卡刷新当前tab页，bootstrap-tab.js中的`$tabs.on("dblclick",`绑定了双击事件。可注释取消这个功能
 
 Browser Support(浏览器支持)
 ----------------------
