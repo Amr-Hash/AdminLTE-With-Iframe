@@ -55,13 +55,18 @@
 修改可以使用grunt构建工具
 
 - 安装nodejs
-- 根目录下命令行执行
+- 项目根目录下命令行执行
+- npm install grunt-cli -g
 - npm install
 
 ## 4 Documentation(文档)
 
 may be you should **customize** the system by reading the codes!
-(请阅读源码进行修改)
+(请阅读源码进行修改)  
+
+## 目录结构
+- build/js/iframe 存放所有关于iframe的源代码，强烈建议修改这里的代码
+- dist/js/app_iframe.js 使用grunt构建工具生成的js，属于打包后的js
 
 [AdminLTE官方文档](http://weituotian.oschina.io/adminlte-with-iframe/documentation/index.html)
 
@@ -126,6 +131,13 @@ App.setGlobalImgPath("dist/img/");
                         id: "90022",
                         text: "general",
                         url: "forms/general_iframe.html",
+                        targetType: "iframe-tab",
+                        icon: "fa fa-circle-o"
+                    },
+                    {
+                        id: "90024",
+                        text: "百度",
+                        url: "https://www.baidu.com",
                         targetType: "iframe-tab",
                         icon: "fa fa-circle-o"
                     }

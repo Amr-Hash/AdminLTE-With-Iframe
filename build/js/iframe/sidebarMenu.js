@@ -84,7 +84,7 @@
                         $a.addClass("ajaxify");
                     }
                     else if (item.targetType != null && item.targetType === "iframe-tab") {
-                        var href = 'addTabs({id:\'' + item.id + '\',title: \'' + item.text + '\',close: true,url: \'' + item.url + '\'});';
+                        var href = 'addTabs({id:\'' + item.id + '\',title: \'' + item.text + '\',close: true,url: \'' + item.url + '\',urlType: \'' + item.urlType + '\'});';
                         $a.attr('onclick', href);
                     }
                     else if (item.targetType != null && item.targetType === "iframe") { //代表单iframe页面
@@ -113,7 +113,7 @@
         $menu_ul.on("click", "li.treeview a", function () {
             var $a = $(this);
 
-            if ($a.next().size()==0) {//如果size>0,就认为它是可以展开的
+            if ($a.next().size() == 0) {//如果size>0,就认为它是可以展开的
                 if ($(window).width() < $.AdminLTE.options.screenSizes.sm) {//小屏幕
                     //触发左边菜单栏按钮点击事件,关闭菜单栏
                     $($.AdminLTE.options.sidebarToggleSelector).click();

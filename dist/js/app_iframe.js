@@ -1884,8 +1884,6 @@ var rightClickEvent = undefined;
     });
 
 })(jQuery);
-
-
 //保存页面id的field
 var pageIdField = "data-pageId";
 
@@ -1944,7 +1942,7 @@ var addTabs = function (options) {
 
     options = $.extend(true, defaultTabOptions, options);
 
-    if (options.urlType == "relative") {
+    if (options.urlType === "relative") {
         // var url = window.location.protocol + '//' + window.location.host + "/";
         var basePath = window.location.pathname + "/../";
         options.url = basePath + options.url;
@@ -1953,7 +1951,7 @@ var addTabs = function (options) {
     var pageId = options.id;
 
     //判断这个id的tab是否已经存在,不存在就新建一个
-    if (findTabPanel(pageId) == null) {
+    if (findTabPanel(pageId) === null) {
 
         //创建新TAB的title
         // title = '<a  id="tab_' + pageId + '"  data-id="' + pageId + '"  class="menu_tab" >';
@@ -2073,8 +2071,13 @@ var closeCurrentTab = function () {
 function refreshTabById(pageId) {
     var $iframe = findIframeById(pageId);
     var url = $iframe.attr('src');
-    // $iframe.attr('src', url);
-    $iframe[0].contentWindow.location.reload(true);//带参数刷新
+
+    if (url.indexOf(top.document.domain) < 0) {
+        $iframe.attr("src", url);// 跨域状况下，重新设置url
+    } else {
+        $iframe[0].contentWindow.location.reload(true);//带参数刷新
+    }
+
     App.blockUI({
         target: '#tab-content',
         boxed: true,
@@ -2082,15 +2085,18 @@ function refreshTabById(pageId) {
         // animate: true
     });
 }
+
 var refreshTab = function () {
     //刷新当前tab
     var pageId = getActivePageId();
     refreshTabById(pageId);
 };
+
 function getTabUrlById(pageId) {
     var $iframe = findIframeById(pageId);
     return $iframe[0].contentWindow.location.href;
 }
+
 function getTabUrl(element) {
     var pageId = getPageId(element);
     getTabUrlById(pageId);
@@ -2414,7 +2420,7 @@ $(function () {
                         $a.addClass("ajaxify");
                     }
                     else if (item.targetType != null && item.targetType === "iframe-tab") {
-                        var href = 'addTabs({id:\'' + item.id + '\',title: \'' + item.text + '\',close: true,url: \'' + item.url + '\'});';
+                        var href = 'addTabs({id:\'' + item.id + '\',title: \'' + item.text + '\',close: true,url: \'' + item.url + '\',urlType: \'' + item.urlType + '\'});';
                         $a.attr('onclick', href);
                     }
                     else if (item.targetType != null && item.targetType === "iframe") { //代表单iframe页面
@@ -2443,7 +2449,7 @@ $(function () {
         $menu_ul.on("click", "li.treeview a", function () {
             var $a = $(this);
 
-            if ($a.next().size()==0) {//如果size>0,就认为它是可以展开的
+            if ($a.next().size() == 0) {//如果size>0,就认为它是可以展开的
                 if ($(window).width() < $.AdminLTE.options.screenSizes.sm) {//小屏幕
                     //触发左边菜单栏按钮点击事件,关闭菜单栏
                     $($.AdminLTE.options.sidebarToggleSelector).click();

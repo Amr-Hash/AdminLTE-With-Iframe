@@ -1,6 +1,4 @@
-﻿
-
-//保存页面id的field
+﻿//保存页面id的field
 var pageIdField = "data-pageId";
 
 function getPageId(element) {
@@ -58,7 +56,7 @@ var addTabs = function (options) {
 
     options = $.extend(true, defaultTabOptions, options);
 
-    if (options.urlType == "relative") {
+    if (options.urlType === "relative") {
         // var url = window.location.protocol + '//' + window.location.host + "/";
         var basePath = window.location.pathname + "/../";
         options.url = basePath + options.url;
@@ -67,7 +65,7 @@ var addTabs = function (options) {
     var pageId = options.id;
 
     //判断这个id的tab是否已经存在,不存在就新建一个
-    if (findTabPanel(pageId) == null) {
+    if (findTabPanel(pageId) === null) {
 
         //创建新TAB的title
         // title = '<a  id="tab_' + pageId + '"  data-id="' + pageId + '"  class="menu_tab" >';
@@ -187,8 +185,13 @@ var closeCurrentTab = function () {
 function refreshTabById(pageId) {
     var $iframe = findIframeById(pageId);
     var url = $iframe.attr('src');
-    // $iframe.attr('src', url);
-    $iframe[0].contentWindow.location.reload(true);//带参数刷新
+
+    if (url.indexOf(top.document.domain) < 0) {
+        $iframe.attr("src", url);// 跨域状况下，重新设置url
+    } else {
+        $iframe[0].contentWindow.location.reload(true);//带参数刷新
+    }
+
     App.blockUI({
         target: '#tab-content',
         boxed: true,
@@ -196,15 +199,18 @@ function refreshTabById(pageId) {
         // animate: true
     });
 }
+
 var refreshTab = function () {
     //刷新当前tab
     var pageId = getActivePageId();
     refreshTabById(pageId);
 };
+
 function getTabUrlById(pageId) {
     var $iframe = findIframeById(pageId);
     return $iframe[0].contentWindow.location.href;
 }
+
 function getTabUrl(element) {
     var pageId = getPageId(element);
     getTabUrlById(pageId);
