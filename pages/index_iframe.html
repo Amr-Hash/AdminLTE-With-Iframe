@@ -331,7 +331,8 @@
                 <div class="input-group">
                     <input type="text" name="q" class="form-control" placeholder="Search...">
                     <span class="input-group-btn">
-                <button type="button" name="search" id="search-btn" class="btn btn-flat" onclick="search_menu()"><i class="fa fa-search"></i>
+                <button type="button" name="search" id="search-btn" class="btn btn-flat" onclick="search_menu()"><i
+                        class="fa fa-search"></i>
                 </button>
               </span>
                 </div>
@@ -786,7 +787,7 @@
 
         var $ul = $('.sidebar-menu');
         $ul.find("a.nav-link").each(function () {
-            var $a = $(this).css("border","");
+            var $a = $(this).css("border", "");
 
             //判断是否含有要搜索的字符串
             if ($a.children("span.menu-text").text().indexOf(text) >= 0) {
@@ -799,7 +800,7 @@
                 }
 
                 //点击该菜单
-                $a.click().css("border","1px solid");
+                $a.click().css("border", "1px solid");
 
 //                return false;
             }
@@ -931,12 +932,30 @@
                         text: "百度",
                         url: "https://www.baidu.com",
                         targetType: "iframe-tab",
-                        icon: "fa fa-circle-o"
+                        icon: "fa fa-circle-o",
+                        urlType: 'abosulte'
                     }
                 ]
             }
         ];
         $('.sidebar-menu').sidebarMenu({data: menus});
+
+        // 动态创建菜单后，可以重新计算 SlimScroll
+        // $.AdminLTE.layout.fixSidebar();
+
+        /*if ($.AdminLTE.options.sidebarSlimScroll) {
+            if (typeof $.fn.slimScroll != 'undefined') {
+                //Destroy if it exists
+                var $sidebar = $(".sidebar");
+                $sidebar.slimScroll({destroy: true}).height("auto");
+                //Add slimscroll
+                $sidebar.slimscroll({
+                    height: ($(window).height() - $(".main-header").height()) + "px",
+                    color: "rgba(0,0,0,0.2)",
+                    size: "3px"
+                });
+            }
+        }*/
 
     });
 </script>

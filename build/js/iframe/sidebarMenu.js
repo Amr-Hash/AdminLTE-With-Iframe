@@ -20,7 +20,7 @@
             $.each(data, function (i, item) {
                 //如果标签是isHeader
                 var $header = $('<li class="header"></li>');
-                if (item.isHeader != null && item.isHeader === true) {
+                if (item.isHeader !== null && item.isHeader === true) {
                     $header.append(item.text);
                     $menu_ul.append($header);
                     return;
@@ -84,6 +84,7 @@
                         $a.addClass("ajaxify");
                     }
                     else if (item.targetType != null && item.targetType === "iframe-tab") {
+                        item.urlType = item.urlType ? item.urlType : 'relative';
                         var href = 'addTabs({id:\'' + item.id + '\',title: \'' + item.text + '\',close: true,url: \'' + item.url + '\',urlType: \'' + item.urlType + '\'});';
                         $a.attr('onclick', href);
                     }
